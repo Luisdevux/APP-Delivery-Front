@@ -31,3 +31,23 @@ export function safeFormatDate(date: string | Date | null | undefined, formatStr
     return "--/--/---- --:--";
   }
 }
+
+/**
+ * Extrai uma mensagem de erro amigável de um objeto de erro (ex: retornado pelo secureFetch)
+ */
+export function getErrorMessage(error: unknown): string {
+    const err = error as { message?: string; data?: { message?: string; errors?: Array<{ message?: string; msg?: string }> } };
+    
+    // Se for erro retornado pelo secureFetch (formato da nossa API)
+    if (err?.data?.message) return err.data.message;
+    
+    // Se houver lista de erros detalhados (Zod ou validação customizada)
+    if (err?.data?.errors && Array.isArray(err.data.errors) && err.data.errors.length > 0) {
+        return err.data.errors[0].message || err.data.errors[0].msg || "Dados inválidos.";
+    }
+
+    // Erros padrão do JS/Fetch
+    if (err?.message) return err.message;
+
+    return "Ocorreu um erro inesperado. Tente novamente.";
+}

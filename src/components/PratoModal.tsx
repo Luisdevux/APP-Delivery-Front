@@ -19,11 +19,12 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Loader2, CheckCircle2, Camera, Utensils, X } from "lucide-react";
 import Image from "next/image";
+import { maskCurrency, unmaskCurrency } from "@/lib/masks";
 
 const pratoSchema = z.object({
   nome: z.string().min(3, "Nome muito curto"),
   descricao: z.string().min(10, "Descrição muito curta"),
-  preco: z.any().transform((val) => Number(val)).refine((val) => val > 0, "Preço deve ser maior que zero"),
+  preco: z.any().transform((val) => typeof val === 'string' ? unmaskCurrency(val) : Number(val)).refine((val) => val > 0, "Preço deve ser maior que zero"),
   secao: z.string().min(1, "Selecione uma seção"),
   status: z.enum(["ativo", "inativo"]),
   adicionais_grupo_ids: z.array(z.string()),
@@ -60,6 +61,7 @@ export function PratoModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [displayPreco, setDisplayPreco] = useState("0,00");
 
   const { 
     register, 
@@ -85,6 +87,7 @@ export function PratoModal({
       setSelectedFile(null);
       setPreviewUrl(null);
       if (initialData) {
+        setDisplayPreco(maskCurrency(initialData.preco));
         reset({
           nome: initialData.nome,
           descricao: initialData.descricao,
@@ -96,6 +99,7 @@ export function PratoModal({
           ),
         });
       } else {
+        setDisplayPreco("0,00");
         reset({
           nome: "",
           descricao: "",
@@ -175,7 +179,7 @@ export function PratoModal({
                                 </div>
                             </div>
                             
-                            <div className="absolute -bottom-2 -right-2 p-2.5 bg-primary-green text-white rounded-2xl shadow-lg hover:scale-105 transition-all z-10">
+                            <div className="absolute -bottom-2 -right-2 p-2.5 bg-primary-green text-white rounded-2xl shadow-lg hover:scale-105 transition-all z-10 border-4 border-surface-white">
                                 <Camera className="w-4 h-4" />
                             </div>
 
@@ -195,7 +199,7 @@ export function PratoModal({
                     <div className="flex-1 space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="nome" className="text-[10px] font-black text-text-tertiary uppercase tracking-widest ml-1">Nome do Prato</Label>
-                            <Input id="nome" {...register("nome")} placeholder="Ex: Pizza de Calabresa" className="h-14 bg-surface-light border-border-gray/50 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary-green/5" />
+                            <Input id="nome" {...register("nome")} placeholder="Ex: Pizza de Calabresa" className="h-14 bg-surface-light border border-border-gray/50 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary-green/5 shadow-inner" />
                             {errors.nome && <p className="text-error-text text-xs ml-1 font-bold">{errors.nome.message}</p>}
                         </div>
 
@@ -204,7 +208,17 @@ export function PratoModal({
                                 <Label htmlFor="preco" className="text-[10px] font-black text-text-tertiary uppercase tracking-widest ml-1">Preço Sugerido</Label>
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary-green text-sm">R$</span>
-                                    <Input id="preco" type="number" step="0.01" {...register("preco")} className="h-14 bg-surface-light border-border-gray/50 rounded-2xl text-text-primary font-black pl-10 focus:ring-4 focus:ring-primary-green/5" />
+                                    <Input 
+                                        id="preco" 
+                                        type="text"
+                                        value={displayPreco}
+                                        onChange={(e) => {
+                                            const masked = maskCurrency(e.target.value);
+                                            setDisplayPreco(masked);
+                                            setValue("preco", unmaskCurrency(masked));
+                                        }}
+                                        className="h-14 bg-surface-light border-border-gray/50 rounded-2xl text-text-primary font-black pl-10 focus:ring-4 focus:ring-primary-green/5 shadow-inner" 
+                                    />
                                 </div>
                                 {errors.preco && <p className="text-error-text text-xs ml-1 font-bold">{errors.preco.message}</p>}
                             </div>
@@ -214,7 +228,7 @@ export function PratoModal({
                                 <select 
                                     id="secao"
                                     {...register("secao")}
-                                    className="flex h-14 w-full rounded-2xl bg-surface-light border border-border-gray/50 px-4 text-sm text-text-primary font-bold focus:ring-4 focus:ring-primary-green/5 outline-none cursor-pointer appearance-none"
+                                    className="flex h-14 w-full rounded-2xl bg-surface-light border border-border-gray/50 px-4 text-sm text-text-primary font-bold focus:ring-4 focus:ring-primary-green/5 outline-none cursor-pointer appearance-none shadow-inner"
                                 >
                                     <option value="">Selecione...</option>
                                     {secoes.map(sec => (
@@ -232,7 +246,7 @@ export function PratoModal({
                     <textarea 
                     id="descricao" 
                     {...register("descricao")}
-                    className="flex w-full rounded-[1.5rem] bg-surface-light border border-border-gray/50 px-4 py-3 text-sm text-text-primary font-medium focus:ring-4 focus:ring-primary-green/5 outline-none min-h-[100px] transition-all resize-none"
+                    className="flex w-full rounded-[1.5rem] bg-surface-light border border-border-gray/50 px-4 py-3 text-sm text-text-primary font-medium focus:ring-4 focus:ring-primary-green/5 outline-none min-h-[100px] transition-all resize-none shadow-inner"
                     placeholder="Descreva os ingredientes..."
                     />
                     {errors.descricao && <p className="text-error-text text-xs ml-1 font-bold">{errors.descricao.message}</p>}
@@ -284,8 +298,8 @@ export function PratoModal({
 
         <div className="p-8 border-t border-border-gray bg-surface-light/20 flex gap-4">
             <Button type="button" variant="ghost" className="h-14 flex-1 rounded-2xl font-bold text-text-tertiary hover:bg-surface-light" onClick={() => onOpenChange(false)}>CANCELAR</Button>
-            <Button form="prato-form" type="submit" disabled={isLoading} className="h-14 flex-[2] rounded-2xl font-black shadow-lg shadow-primary-green/10 bg-primary-green text-white hover:bg-primary-green/90">
-                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : "SALVAR PRODUTO"}
+            <Button form="prato-form" type="submit" disabled={isLoading} className="h-14 flex-[2] rounded-2xl font-black shadow-lg shadow-primary-green/10 bg-primary-green text-white hover:bg-primary-green/90 active:scale-95 transition-all border-none">
+                {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-white" /> : "SALVAR PRODUTO"}
             </Button>
         </div>
       </DialogContent>

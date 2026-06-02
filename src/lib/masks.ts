@@ -25,6 +25,25 @@ export const maskCPF = (value: string) => {
   return `${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9)}`;
 };
 
+export const maskCurrency = (value: string | number) => {
+  const cleanValue = typeof value === 'number' 
+    ? value.toFixed(2).replace('.', '') 
+    : value.replace(/\D/g, "");
+    
+  if (!cleanValue) return "0,00";
+  
+  const amount = parseInt(cleanValue) / 100;
+  return amount.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+export const unmaskCurrency = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  return parseInt(digits || "0") / 100;
+};
+
 export const unmask = (value: string) => {
   return value ? value.replace(/\D/g, "") : "";
 };

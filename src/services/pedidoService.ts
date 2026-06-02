@@ -1,5 +1,18 @@
 import { secureFetch } from '@/lib/secureFetch';
 
+export interface PaginatedResponse<T> {
+  docs: T[];
+  totalDocs: number;
+  limit: number;
+  totalPages: number;
+  page: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
 export interface Pedido {
   _id: string;
   cliente_id?: {
@@ -26,6 +39,7 @@ export interface Pedido {
     quantidade: number;
     preco_unitario: number;
     total_item: number;
+    observacao?: string;
     adicionais?: Array<{
         opcao_id: string;
         opcao_nome: string;
@@ -46,7 +60,7 @@ export interface Pedido {
 
 export const pedidoService = {
   listarPorRestaurante: async (restauranteId: string, params?: Record<string, string | number>) => {
-    const response = await secureFetch<{ data: { docs: Pedido[] } }>({
+    const response = await secureFetch<{ data: PaginatedResponse<Pedido> }>({
       endpoint: `/pedidos/restaurante/${restauranteId}`,
       params: params as Record<string, string>,
     });

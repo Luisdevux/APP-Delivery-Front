@@ -7,6 +7,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "./useAuth";
 import { usuarioService, Usuario } from "@/services/usuarioService";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 export function useUserProfile(userId?: string) {
   const { isAuthenticated } = useAuth();
@@ -28,8 +29,8 @@ export function useUserMutations(userId?: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.usuario.perfil });
       toast.success("Perfil atualizado com sucesso!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar perfil.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     }
   });
 
@@ -39,8 +40,8 @@ export function useUserMutations(userId?: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.usuario.perfil });
       toast.success("Foto de perfil atualizada!");
     },
-    onError: () => {
-      toast.error("Erro ao fazer upload da foto.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     }
   });
 
@@ -50,8 +51,8 @@ export function useUserMutations(userId?: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.usuario.perfil });
       toast.success("Foto de perfil removida!");
     },
-    onError: () => {
-      toast.error("Erro ao remover foto.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     }
   });
 

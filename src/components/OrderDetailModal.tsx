@@ -22,18 +22,22 @@ import {
     ChefHat,
     Truck,
     CheckCircle2,
-    XCircle
+    XCircle,
+    AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEnderecoUsuario } from "@/hooks/useEnderecos";
 import { cn } from "@/lib/utils";
 import { maskPhone, maskCPF } from "@/lib/masks";
+import { Button } from "./ui/button";
 
 interface OrderDetailModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     pedido: Pedido | null;
+    onUpdateStatus?: (id: string, status: Pedido['status']) => void;
+    isUpdating?: boolean;
 }
 
 const statusConfig = {
@@ -44,7 +48,7 @@ const statusConfig = {
   cancelado: { label: "Cancelado", icon: XCircle, color: "text-error-text bg-error-bg border-error-text/10" },
 };
 
-export function OrderDetailModal({ open, onOpenChange, pedido }: OrderDetailModalProps) {
+export function OrderDetailModal({ open, onOpenChange, pedido, onUpdateStatus, isUpdating }: OrderDetailModalProps) {
     const cliente = pedido?.cliente_id || pedido?.usuario_id;
     const { data: enderecos, isLoading: isLoadingAddr } = useEnderecoUsuario(cliente?._id);
     
@@ -174,6 +178,14 @@ export function OrderDetailModal({ open, onOpenChange, pedido }: OrderDetailModa
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-text-primary leading-tight">{item.prato_id?.nome || item.prato_nome || "Prato removido"}</span>
                                                     <span className="text-[10px] text-text-tertiary">Unitário: R$ {item.preco_unitario.toFixed(2).replace('.', ',')}</span>
+                                                    {item.observacao && (
+                                                        <div className="mt-1 flex items-start gap-1.5 p-2 bg-amber-50 border border-amber-100 rounded-xl">
+                                                            <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
+                                                            <span className="text-[11px] text-amber-700 font-bold leading-tight">
+                                                                Obs: {item.observacao}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <span className="font-bold text-text-primary text-sm whitespace-nowrap">
@@ -225,13 +237,27 @@ export function OrderDetailModal({ open, onOpenChange, pedido }: OrderDetailModa
                     </section>
                 </div>
 
-                <div className="p-6 bg-surface-light/30 border-t border-border-gray text-center flex flex-col gap-1">
-                    <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-tighter">
-                        ID do Pedido: {pedido._id}
-                    </p>
-                    <p className="text-[9px] text-text-tertiary font-medium">
-                        Registro: {pedido.createdAt ? format(new Date(pedido.createdAt), "dd/MM/yyyy HH:mm:ss", { locale: ptBR }) : "--/--/----"}
-                    </p>
+                <div className="p-6 bg-surface-light/30 border-t border-border-gray flex flex-col gap-3">
+                    {(pedido.status === 'criado' || pedido.status === 'em_preparo') && (
+                        <Button 
+                            variant="destructive" 
+                            disabled={isUpdating}
+                            className="w-full h-12 rounded-xl font-black shadow-lg"
+                            onClick={() => {
+                                onUpdateStatus?.(pedido._id, 'cancelado');
+                            }}
+                        >
+                            {isUpdating ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : "CANCELAR PEDIDO"}
+                        </Button>
+                    )}
+                    <div className="text-center flex flex-col gap-1">
+                        <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-tighter">
+                            ID do Pedido: {pedido._id}
+                        </p>
+                        <p className="text-[9px] text-text-tertiary font-medium">
+                            Registro: {pedido.createdAt ? format(new Date(pedido.createdAt), "dd/MM/yyyy HH:mm:ss", { locale: ptBR }) : "--/--/----"}
+                        </p>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

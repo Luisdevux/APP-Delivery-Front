@@ -24,7 +24,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { PratoModal, type PratoFormData } from "@/components/PratoModal";
@@ -48,6 +48,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { maskCurrency, unmaskCurrency } from "@/lib/masks";
 
 export default function CardapioPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,7 +67,11 @@ export default function CardapioPage() {
 
   const { data: pratos, isLoading: isLoadingPratos } = usePratosRestaurante(restauranteAtivo?._id);
   const { data: gruposAdicionais } = useGruposAdicionais(restauranteAtivo?._id);
-  const { createPrato, updatePrato, deletePrato, uploadFotoPrato, isProcessing } = usePratoMutations(restauranteAtivo?._id || "");
+  // Passa o callback para fechar o modal apenas em caso de sucesso total
+  const { createPrato, updatePrato, deletePrato, isProcessing } = usePratoMutations(
+    restauranteAtivo?._id || "",
+    () => setIsModalOpen(false)
+  );
 
   const isLoading = isLoadingRestauranteProvider || isLoadingPratos;
 
@@ -92,12 +97,11 @@ export default function CardapioPage() {
 
   const handleFormSubmit = async (data: PratoFormData, file?: File | null) => {
     if (selectedPrato) {
-      updatePrato({ id: selectedPrato._id, dados: data });
-      if (file) uploadFotoPrato({ id: selectedPrato._id, file });
+      updatePrato({ id: selectedPrato._id, dados: data, file });
     } else {
-      createPrato(data);
+      createPrato({ dados: data, file });
     }
-    setIsModalOpen(false);
+    // O modal NÃO fecha aqui. Fecha apenas no onSuccess do hook usePratoMutations
   };
 
   const confirmDelete = () => {
@@ -374,7 +378,10 @@ function AdicionaisRefactored({ restauranteId }: { restauranteId?: string }) {
     const [isGrupoModalOpen, setIsGrupoModalOpen] = useState(false);
     const [isDeleteGrupoOpen, setIsDeleteGrupoOpen] = useState(false);
 
-    const { createGrupo, updateGrupo, deleteGrupo, isProcessingGrupo } = useAdicionalMutations(restauranteId);
+    const { createGrupo, updateGrupo, deleteGrupo, isProcessingGrupo } = useAdicionalMutations(
+        restauranteId, 
+        () => setIsGrupoModalOpen(false)
+    );
 
     const handleSaveGrupo = (d: Partial<AdicionalGrupo>) => {
         if (selectedGrupo) {
@@ -382,7 +389,7 @@ function AdicionaisRefactored({ restauranteId }: { restauranteId?: string }) {
         } else {
             createGrupo(d);
         }
-        setIsGrupoModalOpen(false);
+        // O modal NÃO fecha aqui. Fecha apenas no onSuccess do hook useAdicionalMutations
     };
 
     return (
@@ -485,7 +492,8 @@ function GrupoCardRefactored({ grupo, onEdit, onDelete }: { grupo: AdicionalGrup
             queryClient.invalidateQueries({ queryKey: ['adicionais-opcoes', grupo._id] });
             toast.success("Opção salva!");
             setIsOpcaoModalOpen(false);
-        }
+        },
+        onError: (error: unknown) => toast.error(getErrorMessage(error))
     });
 
     const deleteOpcao = useMutation({
@@ -617,6 +625,7 @@ function AdicionalGrupoModalRefactored({ open, onOpenChange, grupo, onSubmit, is
 function AdicionalOpcaoModalRefactored({ open, onOpenChange, opcao, onSubmit, onDeletePhoto, isLoading }: AdicionalModalProps<AdicionalOpcao>) {
     const [nome, setNome] = useState("");
     const [preco, setPreco] = useState(0);
+    const [displayPreco, setDisplayPreco] = useState("0,00");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -625,12 +634,14 @@ function AdicionalOpcaoModalRefactored({ open, onOpenChange, opcao, onSubmit, on
         if (opcao && open) { 
             setNome(opcao.nome); 
             setPreco(opcao.preco); 
+            setDisplayPreco(maskCurrency(opcao.preco));
             setSelectedFile(null);
             setPreviewUrl(null);
         }
         else if (open) { 
             setNome(""); 
             setPreco(0); 
+            setDisplayPreco("0,00");
             setSelectedFile(null);
             setPreviewUrl(null);
         }
@@ -724,15 +735,23 @@ function AdicionalOpcaoModalRefactored({ open, onOpenChange, opcao, onSubmit, on
                             <Label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest ml-1">Preço Adicional (R$)</Label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-primary-green text-sm">R$</span>
-                                <Input type="number" step="0.01" min={0} value={preco} onChange={(e) => setPreco(Number(e.target.value))} className="h-14 bg-surface-light border border-border-gray rounded-2xl font-black text-text-primary pl-10 focus:ring-4 focus:ring-primary-green/5 shadow-inner" />
+                                <Input 
+                                    type="text"
+                                    value={displayPreco} 
+                                    onChange={(e) => {
+                                        const masked = maskCurrency(e.target.value);
+                                        setDisplayPreco(masked);
+                                        setPreco(unmaskCurrency(masked));
+                                    }} 
+                                    className="h-14 bg-surface-light border border-border-gray rounded-2xl font-black text-text-primary pl-10 focus:ring-4 focus:ring-primary-green/5 shadow-inner" 
+                                />
                             </div>
-                            <p className="text-[9px] text-text-tertiary font-bold px-1 italic">Use R$ 0,00 para itens grátis.</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-10 pt-0 grid grid-cols-2 gap-4">
-                    <Button variant="ghost" className="h-14 rounded-2xl font-bold text-text-tertiary hover:bg-surface-light border-none shadow-none cursor-pointer transition-all active:scale-95" onClick={() => onOpenChange(false)}>CANCELAR</Button>
+                <div className="p-10 pt-0 grid grid-cols-2 gap-4 text-text-primary">
+                    <Button variant="ghost" className="h-14 rounded-2xl font-bold text-text-tertiary hover:bg-surface-light border-none shadow-none cursor-pointer active:scale-95 transition-all" onClick={() => onOpenChange(false)}>CANCELAR</Button>
                     <Button onClick={() => onSubmit({ nome, preco }, selectedFile)} disabled={isLoading} className="h-14 rounded-2xl font-black bg-primary-green text-white shadow-lg shadow-primary-green/5 cursor-pointer active:scale-95 transition-all border-none">
                         {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : "SALVAR ITEM"}
                     </Button>

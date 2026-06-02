@@ -10,7 +10,11 @@ import {
   XCircle, 
   ChefHat,
   Eye,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquareText,
+  Loader2
 } from "lucide-react";
 import { cn, safeFormatDate } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -20,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { OrderDetailModal } from "@/components/OrderDetailModal";
 import { useActiveRestaurante } from "@/hooks/useActiveRestaurante";
 import { BlockedOverlay } from "@/components/BlockedOverlay";
-
 import { maskPhone } from "@/lib/masks";
 
 const statusConfig = {
@@ -35,18 +38,26 @@ export default function PedidosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { activeRestaurante, isComplete } = useActiveRestaurante();
   const { data: restauranteData } = useMeusRestaurantes();
   const restauranteId = activeRestaurante?._id || restauranteData?.docs?.[0]?._id;
 
-  const { data: pedidosData, isLoading } = usePedidosRestaurante(restauranteId);
+  const { data: pedidosData, isLoading } = usePedidosRestaurante(restauranteId, { 
+    page: currentPage, 
+    limite: itemsPerPage 
+  });
+  
   const { updateStatus, isUpdating } = usePedidoMutations(restauranteId || "");
 
   const pedidos = pedidosData?.docs || [];
+  const totalPages = pedidosData?.totalPages || 1;
   
   const filteredPedidos = pedidos.filter(p => {
-    const nomeCliente = p.cliente_id?.nome || p.usuario_id?.nome || "";
+    const cliente = p.cliente_id || p.usuario_id;
+    const nomeCliente = (typeof cliente === 'object' ? cliente?.nome : null) || "";
     return nomeCliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
            p._id.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -67,7 +78,7 @@ export default function PedidosPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-text-primary">Gestão de Pedidos</h1>
-          <p className="text-text-secondary">Gerencie os pedidos em tempo real</p>
+          <p className="text-text-secondary">Gerencie os pedidos em tempo real (Atualiza a cada 15s)</p>
         </div>
 
         <div className="relative w-full md:w-80">
@@ -97,7 +108,7 @@ export default function PedidosPage() {
             </thead>
             <tbody className="divide-y divide-border-gray">
               {isLoading ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-text-secondary">Carregando pedidos...</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-text-secondary"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary-green" /></td></tr>
               ) : filteredPedidos.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-10 text-center text-text-secondary font-medium">Nenhum pedido encontrado.</td></tr>
               ) : (
@@ -106,12 +117,22 @@ export default function PedidosPage() {
                   const clienteNome = (typeof cliente === 'object' ? cliente?.nome : null) || "Cliente não identificado";
                   const clienteEmail = (typeof cliente === 'object' ? cliente?.email : null) || "-";
                   const clienteTelefone = (typeof cliente === 'object' ? cliente?.telefone : null);
+                  
+                  // Verifica se algum item tem observação
+                  const temObservacao = pedido.itens.some(item => item.observacao && item.observacao.trim() !== "");
 
                   return (
                     <tr key={pedido._id} className="hover:bg-surface-light/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-text-primary">#{pedido._id.slice(-6).toUpperCase()}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-text-primary">#{pedido._id.slice(-6).toUpperCase()}</span>
+                            {temObservacao && (
+                                <div className="p-1 bg-amber-100 text-amber-600 rounded-md" title="Contém observações">
+                                    <MessageSquareText className="w-3 h-3" />
+                                </div>
+                            )}
+                          </div>
                           <span className="text-[10px] font-bold text-text-primary mt-1">
                             {safeFormatDate(pedido.createdAt, "dd MMM, HH:mm")}
                           </span>
@@ -134,6 +155,12 @@ export default function PedidosPage() {
                           <span className="text-xs text-text-tertiary">{clienteEmail}</span>
                           {clienteTelefone && (
                             <span className="text-[10px] text-primary-green font-bold mt-0.5">{maskPhone(clienteTelefone)}</span>
+                          )}
+                          {temObservacao && (
+                            <div className="mt-1 flex items-start gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100 w-fit max-w-[200px]">
+                                <MessageSquareText className="w-3 h-3 shrink-0 mt-0.5" />
+                                <span className="truncate">{pedido.itens.find(i => i.observacao)?.observacao}</span>
+                            </div>
                           )}
                         </div>
                       </td>
@@ -190,6 +217,21 @@ export default function PedidosPage() {
                           >
                             <Eye className="w-5 h-5" />
                           </Button>
+                          {(pedido.status === 'criado' || pedido.status === 'em_preparo') && (
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-error-text hover:bg-error-bg/50"
+                                onClick={() => {
+                                    if(confirm("Deseja cancelar este pedido?")) {
+                                        updateStatus({ id: pedido._id, status: 'cancelado' });
+                                    }
+                                }}
+                                disabled={isUpdating}
+                            >
+                                <XCircle className="w-5 h-5" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -199,12 +241,43 @@ export default function PedidosPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Paginação */}
+        {!isLoading && totalPages > 1 && (
+            <div className="px-6 py-4 bg-surface-light border-t border-border-gray flex items-center justify-between">
+                <span className="text-xs text-text-secondary font-medium">
+                    Página {currentPage} de {totalPages}
+                </span>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        className="h-8 w-8 p-0"
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        className="h-8 w-8 p-0"
+                    >
+                        <ChevronRight className="w-4 h-4" />
+                    </Button>
+                </div>
+            </div>
+        )}
       </div>
 
       <OrderDetailModal 
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         pedido={selectedPedido}
+        onUpdateStatus={(id, status) => updateStatus({ id, status })}
+        isUpdating={isUpdating}
       />
     </div>
   );

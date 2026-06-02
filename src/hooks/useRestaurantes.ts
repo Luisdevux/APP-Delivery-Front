@@ -7,6 +7,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { restauranteService, Restaurante } from "@/services/restauranteService";
 import { enderecoService, Endereco } from "@/services/enderecoService";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 export function useMeusRestaurantes() {
   return useQuery({
@@ -40,8 +41,8 @@ export function useRestauranteMutations(restauranteId?: string) {
       }
       toast.success("Dados do restaurante salvos!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao salvar restaurante.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -57,8 +58,8 @@ export function useRestauranteMutations(restauranteId?: string) {
       }
       toast.success("Status atualizado!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao atualizar status.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -74,8 +75,8 @@ export function useRestauranteMutations(restauranteId?: string) {
       }
       toast.success("Foto atualizada!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao fazer upload.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -91,8 +92,8 @@ export function useRestauranteMutations(restauranteId?: string) {
       }
       toast.success("Foto removida!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao remover foto.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -107,8 +108,8 @@ export function useRestauranteMutations(restauranteId?: string) {
       queryClient.invalidateQueries({ queryKey: ['endereco', variables.restauranteId] });
       toast.success("Endereço salvo com sucesso!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao salvar endereço.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
@@ -121,8 +122,8 @@ export function useRestauranteMutations(restauranteId?: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.restaurantes.meus });
       toast.success("Restaurante excluído com sucesso.");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Erro ao excluir restaurante.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error));
     },
   });
 
