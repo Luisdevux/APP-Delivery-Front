@@ -21,6 +21,13 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { OrderDetailModal } from "@/components/OrderDetailModal";
 import { useActiveRestaurante } from "@/hooks/useActiveRestaurante";
 import { BlockedOverlay } from "@/components/BlockedOverlay";
@@ -39,6 +46,8 @@ export default function PedidosPage() {
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [pedidoToCancel, setPedidoToCancel] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   const { activeRestaurante, isComplete } = useActiveRestaurante();
@@ -223,15 +232,15 @@ export default function PedidosPage() {
                                 size="icon" 
                                 className="text-error-text hover:bg-error-bg/50"
                                 onClick={() => {
-                                    if(confirm("Deseja cancelar este pedido?")) {
-                                        updateStatus({ id: pedido._id, status: 'cancelado' });
-                                    }
+                                    setPedidoToCancel(pedido._id);
+                                    setIsCancelModalOpen(true);
                                 }}
                                 disabled={isUpdating}
                             >
-                                <XCircle className="w-5 h-5" />
+                              <XCircle className="w-5 h-5" />
                             </Button>
                           )}
+
                         </div>
                       </td>
                     </tr>
@@ -279,10 +288,39 @@ export default function PedidosPage() {
         onUpdateStatus={(id, status) => updateStatus({ id, status })}
         isUpdating={isUpdating}
       />
-    </div>
-  );
-}
 
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-[420px] bg-surface-white border-border-gray shadow-2xl rounded-[3rem] p-10 text-text-primary">
+          <DialogHeader className="space-y-4">
+            <div className="w-20 h-20 bg-error-bg rounded-[2rem] flex items-center justify-center mx-auto shadow-xl shadow-error-text/5">
+                <XCircle className="w-10 h-10 text-error-text" />
+            </div>
+            <DialogTitle className="text-text-primary font-black text-2xl text-center uppercase tracking-tight">Cancelar Pedido?</DialogTitle>
+            <DialogDescription className="text-center font-medium text-text-secondary leading-relaxed">
+              Esta ação informará ao cliente que o pedido foi cancelado e não poderá ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 mt-10">
+            <Button variant="ghost" className="h-14 rounded-2xl font-bold text-text-tertiary border-none shadow-none cursor-pointer transition-all" onClick={() => setIsCancelModalOpen(false)}>MANTER</Button>
+            <Button 
+                variant="destructive" 
+                className="h-14 rounded-2xl font-black shadow-lg cursor-pointer active:scale-95 transition-all border-none" 
+                disabled={isUpdating}
+                onClick={() => {
+                    if (pedidoToCancel) {
+                        updateStatus({ id: pedidoToCancel, status: 'cancelado' });
+                    }
+                    setIsCancelModalOpen(false);
+                }}
+            >
+                CANCELAR
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      </div>
+      );
+      }
 function StatusBadge({ status }: { status: Pedido['status'] }) {
   const config = statusConfig[status];
   const Icon = config.icon;
