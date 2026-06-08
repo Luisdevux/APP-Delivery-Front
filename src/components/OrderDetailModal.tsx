@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { 
     Dialog, 
     DialogContent, 
@@ -51,6 +52,7 @@ const statusConfig = {
 export function OrderDetailModal({ open, onOpenChange, pedido, onUpdateStatus, isUpdating }: OrderDetailModalProps) {
     const cliente = pedido?.cliente_id || pedido?.usuario_id;
     const { data: enderecos, isLoading: isLoadingAddr } = useEnderecoUsuario(cliente?._id);
+    const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
     
     if (!pedido) return null;
 
@@ -243,9 +245,7 @@ export function OrderDetailModal({ open, onOpenChange, pedido, onUpdateStatus, i
                             variant="destructive" 
                             disabled={isUpdating}
                             className="w-full h-12 rounded-xl font-black shadow-lg"
-                            onClick={() => {
-                                onUpdateStatus?.(pedido._id, 'cancelado');
-                            }}
+                            onClick={() => setIsCancelConfirmOpen(true)}
                         >
                             {isUpdating ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : "CANCELAR PEDIDO"}
                         </Button>
@@ -260,6 +260,34 @@ export function OrderDetailModal({ open, onOpenChange, pedido, onUpdateStatus, i
                     </div>
                 </div>
             </DialogContent>
+
+            <Dialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
+                <DialogContent className="sm:max-w-[420px] bg-surface-white border-border-gray shadow-2xl rounded-[3rem] p-10 text-text-primary z-[110]">
+                    <DialogHeader className="space-y-4">
+                        <div className="w-20 h-20 bg-error-bg rounded-[2rem] flex items-center justify-center mx-auto shadow-xl shadow-error-text/5">
+                            <XCircle className="w-10 h-10 text-error-text" />
+                        </div>
+                        <DialogTitle className="text-text-primary font-black text-2xl text-center uppercase tracking-tight">Cancelar Pedido?</DialogTitle>
+                        <DialogDescription className="text-center font-medium text-text-secondary leading-relaxed">
+                            Esta ação informará ao cliente que o pedido foi cancelado e não poderá ser desfeita.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-2 gap-4 mt-10">
+                        <Button variant="ghost" className="h-14 rounded-2xl font-bold text-text-tertiary border-none shadow-none cursor-pointer transition-all" onClick={() => setIsCancelConfirmOpen(false)}>MANTER</Button>
+                        <Button 
+                            variant="destructive" 
+                            className="h-14 rounded-2xl font-black shadow-lg cursor-pointer active:scale-95 transition-all border-none" 
+                            disabled={isUpdating}
+                            onClick={() => {
+                                onUpdateStatus?.(pedido._id, 'cancelado');
+                                setIsCancelConfirmOpen(false);
+                            }}
+                        >
+                            {isUpdating ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : "CANCELAR"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Dialog>
     );
 }
