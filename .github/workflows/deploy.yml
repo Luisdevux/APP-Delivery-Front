@@ -48,6 +48,8 @@ jobs:
           push: true
           platforms: linux/arm64
           tags: ${{ env.DOCKER_IMAGE }},eduardotartas/app-pedidos-front:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://rango-api.eduardotartas.dpdns.org
 
   deploy:
     runs-on: self-hosted # Runner local na VPS configurado
