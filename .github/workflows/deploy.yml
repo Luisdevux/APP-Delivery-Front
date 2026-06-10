@@ -49,10 +49,8 @@ jobs:
     runs-on: self-hosted # Runner local na VPS configurado
     needs: build
     steps:
-      - name: Configure Kubernetes access
-        uses: azure/k8s-set-context@v3
-        with:
-          kubeconfig: ${{ secrets.KUBE_CONFIG_DATA }}
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
 
       - name: Update deployment image
         run: |
