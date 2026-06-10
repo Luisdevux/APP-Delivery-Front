@@ -2,7 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-pedidos-front-config
+  namespace: rango-prod
 data:
-  NEXT_PUBLIC_API_URL: "https://api.rango.fslab.dev" # URL de Produção da API
-  NEXTAUTH_URL: "https://restaurante.rango.fslab.dev" # URL onde o front ficará hospedado
+  NEXT_PUBLIC_API_URL: "https://rango-api.eduardotartas.dpdns.org" # URL Pública
+  API_URL_SERVER_SIDED: "http://app-pedidos-api-service" # URL Interna do Kubernetes (Sub-milissegundos)
+  NEXTAUTH_URL: "https://rango.eduardotartas.dpdns.org" # URL onde o front ficará hospedado
   # NEXTAUTH_SECRET e GOOGLE_CLIENT_SECRET devem ser injetados via Secret do Kubernetes
