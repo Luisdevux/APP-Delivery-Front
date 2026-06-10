@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: app-pedidos-front
-          image: yurizetoles/app-pedidos-front:latest # Substituir pelo seu repositório
+          image: eduardotartas/app-pedidos-front:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3001

@@ -43,7 +43,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.DOCKER_IMAGE }},yurizetoles/app-pedidos-front:latest
+          tags: ${{ env.DOCKER_IMAGE }},eduardotartas/app-pedidos-front:latest
 
   deploy:
     runs-on: self-hosted # Runner local na VPS configurado
