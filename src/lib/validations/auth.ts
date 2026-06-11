@@ -18,3 +18,20 @@ export const signupSchema = z.object({
 });
 
 export type SignupData = z.infer<typeof signupSchema>;
+
+export const recoverSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+
+export type RecoverData = z.infer<typeof recoverSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "O código é obrigatório"),
+  senha: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  confirmarSenha: z.string(),
+}).refine((data) => data.senha === data.confirmarSenha, {
+  message: "As senhas não coincidem",
+  path: ["confirmarSenha"],
+});
+
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;

@@ -53,7 +53,15 @@ export default function LoginForm() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password" title="Senha" className="cursor-pointer">Senha</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" title="Senha" className="cursor-pointer">Senha</Label>
+            <Link 
+              href="/esqueceu-senha" 
+              className="text-xs font-bold text-primary-green hover:underline cursor-pointer"
+            >
+              Esqueceu a senha?
+            </Link>
+          </div>
           <div className="relative group">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary group-focus-within:text-primary-green transition-colors" />
             <Input
