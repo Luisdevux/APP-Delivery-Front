@@ -5,11 +5,26 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 import { JWT } from "next-auth/jwt";
 
 // No servidor, preferimos a URL interna se disponível
 const API_URL = process.env.API_URL_SERVER_SIDED || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5020";
+
+/**
+ * Extrai a expiração real do token JWT para sincronizar com o NextAuth
+ */
+function getTokenExpiration(token: string): number {
+  try {
+    const decoded = jwtDecode<{ exp: number }>(token);
+    // Retorna a expiração com uma margem de segurança de 1 minuto antes
+    return (decoded.exp * 1000) - (60 * 1000);
+  } catch {
+    // Fallback: 30 minutos se falhar a decodificação
+    return Date.now() + (30 * 60 * 1000);
+  }
+}
 
 /**
  * Helper para renovar o token de acesso usando o refresh token
@@ -33,13 +48,15 @@ async function refreshAccessToken(token: JWT) {
       throw new Error("Falha ao renovar token: Resposta inválida");
     }
 
+    const newAccessToken = apiUser.accesstoken || apiUser.accessToken;
+
     console.log("[NextAuth] Token renovado com sucesso!");
 
     return {
       ...token,
-      accessToken: apiUser.accesstoken || apiUser.accessToken,
+      accessToken: newAccessToken,
       refreshToken: apiUser.refreshtoken || apiUser.refreshToken || token.refreshToken,
-      accessTokenExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 horas
+      accessTokenExpires: getTokenExpiration(newAccessToken),
     };
   } catch (_error) {
     console.error("[NextAuth] Erro ao renovar access token:", _error);
@@ -120,6 +137,7 @@ const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       // Login inicial
       if (user && account) {
+        const accessToken = (user as { accessToken?: string }).accessToken || "";
         return {
           ...token,
           id: user.id,
@@ -127,9 +145,9 @@ const authOptions: NextAuthOptions = {
           email: user.email,
           image: user.image,
           role: (user as { role?: string }).role,
-          accessToken: (user as { accessToken?: string }).accessToken,
+          accessToken: accessToken,
           refreshToken: (user as { refreshToken?: string }).refreshToken,
-          accessTokenExpires: Date.now() + 24 * 60 * 60 * 1000,
+          accessTokenExpires: getTokenExpiration(accessToken),
         };
       }
 
@@ -138,7 +156,7 @@ const authOptions: NextAuthOptions = {
         return token;
       }
 
-      // Se expirou, tenta renovar
+      // Se expirou ou está prestes a expirar, tenta renovar
       return refreshAccessToken(token);
     },
     async session({ session, token }) {

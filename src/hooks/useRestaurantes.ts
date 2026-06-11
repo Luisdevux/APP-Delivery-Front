@@ -47,16 +47,18 @@ export function useRestauranteMutations(restauranteId?: string) {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: (status: 'aberto' | 'fechado') => {
+    mutationFn: ({ status }: { status: 'aberto' | 'fechado', suppressToast?: boolean }) => {
       if (!restauranteId) throw new Error("ID do restaurante não fornecido");
       return restauranteService.atualizar(restauranteId, { status });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.restaurantes.meus });
       if (restauranteId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.restaurantes.detalhes(restauranteId) });
       }
-      toast.success("Status atualizado!");
+      if (!variables.suppressToast) {
+        toast.success("Status atualizado!");
+      }
     },
     onError: (error: unknown) => {
       toast.error(getErrorMessage(error));
@@ -130,7 +132,11 @@ export function useRestauranteMutations(restauranteId?: string) {
   return {
     saveRestaurante: updateMutation.mutate,
     isSaving: updateMutation.isPending,
-    saveStatus: updateStatusMutation.mutate,
+    saveStatus: (status: 'aberto' | 'fechado', options?: any) => {
+        // Se options contiver suppressToast (passado via onSuccess/onSettled do provider), extraí
+        const suppressToast = options?.suppressToast;
+        updateStatusMutation.mutate({ status, suppressToast }, options);
+    },
     isSavingStatus: updateStatusMutation.isPending,
     uploadFoto: uploadFotoMutation.mutate,
     isUploading: uploadFotoMutation.isPending,

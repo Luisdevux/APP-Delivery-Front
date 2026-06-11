@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginData } from "@/lib/validations/auth";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -39,24 +39,29 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-1.5">
           <Label htmlFor="email" className="cursor-pointer">Email</Label>
-          <Input
-            id="email"
-            {...register("email")}
-            type="email"
-            placeholder="contato@restaurante.com"
-          />
+          <div className="relative group">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary group-focus-within:text-primary-green transition-colors" />
+            <Input
+                id="email"
+                {...register("email")}
+                type="email"
+                placeholder="contato@restaurante.com"
+                className="pl-11"
+            />
+          </div>
           {errors.email && <p className="text-error-text text-xs">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="password" title="Senha" className="cursor-pointer">Senha</Label>
-          <div className="relative">
+          <div className="relative group">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary group-focus-within:text-primary-green transition-colors" />
             <Input
               id="password"
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
-              className="pr-12"
+              className="pl-11 pr-12"
             />
             <button
               type="button"

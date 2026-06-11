@@ -74,7 +74,7 @@ export default function RestaurantePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [confirmationName, setConfirmationName] = useState("");
 
-  const { activeRestaurante, isLoading, isComplete, hasAddress, selectRestaurante, restaurantes } = useActiveRestaurante();
+  const { activeRestaurante, isLoading, isComplete, hasAddress, selectRestaurante, restaurantes, setManualOverride } = useActiveRestaurante();
 
   const { data: categoriasData } = useQuery({
     queryKey: ['categorias'],
@@ -315,7 +315,10 @@ export default function RestaurantePage() {
                             type="button"
                             disabled={!isComplete || !restauranteAtivo?.ativo}
                             checked={restauranteAtivo?.status === 'aberto'}
-                            onCheckedChange={(checked) => saveStatus(checked ? 'aberto' : 'fechado')}
+                            onCheckedChange={(checked) => {
+                                if (restauranteAtivo?._id) setManualOverride(restauranteAtivo._id);
+                                saveStatus(checked ? 'aberto' : 'fechado');
+                            }}
                             className="cursor-pointer"
                         />
                     )}

@@ -8,6 +8,44 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function isRestauranteNoHorario(horarios?: any[]): boolean {
+  if (!horarios || horarios.length === 0) return true;
+
+  const agora = new Date();
+  const diaSemanaMap: Record<number, string> = {
+    0: 'domingo',
+    1: 'segunda',
+    2: 'terca',
+    3: 'quarta',
+    4: 'quinta',
+    5: 'sexta',
+    6: 'sabado'
+  };
+
+  const hojeNome = diaSemanaMap[agora.getDay()];
+  const horarioHoje = horarios.find(h => h.dia === hojeNome);
+
+  if (!horarioHoje || horarioHoje.fechado) return false;
+
+  try {
+    const [hAbertura, mAbertura] = horarioHoje.abertura.split(':').map(Number);
+    const [hFechamento, mFechamento] = horarioHoje.fechamento.split(':').map(Number);
+
+    const totalMinutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const totalMinutosAbertura = hAbertura * 60 + mAbertura;
+    const totalMinutosFechamento = hFechamento * 60 + mFechamento;
+
+    // Tratar horários que passam da meia-noite (ex: 18:00 às 02:00)
+    if (totalMinutosFechamento < totalMinutosAbertura) {
+      return totalMinutosAgora >= totalMinutosAbertura || totalMinutosAgora < totalMinutosFechamento;
+    }
+
+    return totalMinutosAgora >= totalMinutosAbertura && totalMinutosAgora < totalMinutosFechamento;
+  } catch {
+    return true; // Fallback para aberto em caso de erro no formato
+  }
+}
+
 export function safeFormatDate(date: string | Date | null | undefined, formatStr: string = "dd/MM/yyyy HH:mm"): string {
   if (!date) return "--/--/---- --:--";
   

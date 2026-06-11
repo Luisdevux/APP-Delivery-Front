@@ -141,7 +141,7 @@ export default function DashboardPage() {
         <div className="bg-surface-white p-6 rounded-2xl shadow-sm border border-border-gray">
           <h3 className="text-lg font-bold text-text-primary mb-6">Faturamento Real (7 dias)</h3>
           <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={last7Days}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} dy={10} />
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         <div className="bg-surface-white p-6 rounded-2xl shadow-sm border border-border-gray">
           <h3 className="text-lg font-bold text-text-primary mb-6">Volume de Pedidos (7 dias)</h3>
           <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={last7Days}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} dy={10} />
