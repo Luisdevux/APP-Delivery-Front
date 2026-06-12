@@ -20,6 +20,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/ThemeProvider";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useActiveRestaurante } from "@/hooks/useActiveRestaurante";
 
 import Image from "next/image";
@@ -34,6 +35,7 @@ const menuItems = [
 
 export default function Sidebar({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
+  const { data: userData } = useUserProfile(session?.user?.id);
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -152,10 +154,10 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
           <div className="mt-auto pt-6 border-t border-secondary-navy">
             <div className="flex items-center gap-3 mb-6 px-2">
               <div className="shrink-0 w-10 h-10 rounded-full bg-secondary-navy border border-primary-green flex items-center justify-center font-bold overflow-hidden relative">
-                {session?.user?.image ? (
+                {userData?.foto_perfil || session?.user?.image ? (
                   <Image 
-                    src={session.user.image} 
-                    alt={session.user.name || "User"} 
+                    src={userData?.foto_perfil || session?.user?.image || ""} 
+                    alt={session?.user?.name || "User"} 
                     fill 
                     unoptimized
                     className="object-cover"
@@ -164,6 +166,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                   session?.user?.name?.[0] || "U"
                 )}
               </div>
+
               <div className="flex flex-col overflow-hidden min-w-0">
                 <span className="text-sm font-semibold truncate text-white">{session?.user?.name}</span>
                 <span className="text-xs text-gray-500 truncate">{session?.user?.email}</span>

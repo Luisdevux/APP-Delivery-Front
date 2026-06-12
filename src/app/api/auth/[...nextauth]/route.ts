@@ -125,7 +125,7 @@ const authOptions: NextAuthOptions = {
             (user as { refreshToken?: string }).refreshToken = apiUser.refreshtoken || apiUser.refreshToken;
             user.name = apiUser.nome;
             user.email = apiUser.email;
-            user.image = apiUser.foto_perfil;
+            user.image = apiUser.foto_perfil || user.image;
             return true;
           }
         } catch {
