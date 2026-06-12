@@ -56,7 +56,7 @@ export function ActiveRestauranteProvider({ children }: { children: React.ReactN
   }, [restaurantes, activeId]);
 
   // Hook de mutação para sync automático
-  const { saveStatus } = useRestauranteMutations(activeRestaurante?._id);
+  const { saveStatus, isSavingStatus } = useRestauranteMutations(activeRestaurante?._id);
 
   // Verificação de horário
   const isWithinHours = useMemo(() => {
@@ -69,25 +69,36 @@ export function ActiveRestauranteProvider({ children }: { children: React.ReactN
     localStorage.setItem("rango-status-overrides", JSON.stringify(newOverrides));
   };
 
+  // Trava de segurança para evitar loops infinitos
+  const lastSyncRef = useRef<string | null>(null);
+
   // Sincronização Automática (Apenas se não foi alterado manualmente)
   useEffect(() => {
-    if (!isLoading && activeRestaurante && activeRestaurante._id && !overrides[activeRestaurante._id]) {
-      const dbStatus = activeRestaurante.status;
-      const shouldBeOpen = isWithinHours;
-
-      if (shouldBeOpen && dbStatus === 'fechado') {
-        saveStatus('aberto', { 
-            suppressToast: true,
-            onSuccess: () => { /* Sucesso silencioso */ }
-        });
-      } else if (!shouldBeOpen && dbStatus === 'aberto') {
-        saveStatus('fechado', {
-            suppressToast: true,
-            onSuccess: () => { /* Sucesso silencioso */ }
-        });
-      }
+    if (isLoading || isSavingStatus || !activeRestaurante?._id || overrides[activeRestaurante._id]) {
+      return;
     }
-  }, [activeRestaurante, isWithinHours, saveStatus, isLoading, overrides]);
+
+    const dbStatus = activeRestaurante.status;
+    const shouldBeOpen = isWithinHours;
+    
+    // Evita disparar exatamente a mesma transição repetidamente
+    const syncKey = `${activeRestaurante._id}-${shouldBeOpen}`;
+    if (lastSyncRef.current === syncKey) return;
+
+    if (shouldBeOpen && dbStatus === 'fechado') {
+      lastSyncRef.current = syncKey;
+      saveStatus('aberto', { 
+          suppressToast: true,
+          onSuccess: () => { /* Sucesso silencioso */ }
+      });
+    } else if (!shouldBeOpen && dbStatus === 'aberto') {
+      lastSyncRef.current = syncKey;
+      saveStatus('fechado', {
+          suppressToast: true,
+          onSuccess: () => { /* Sucesso silencioso */ }
+      });
+    }
+  }, [activeRestaurante, isWithinHours, saveStatus, isLoading, overrides, isSavingStatus]);
   
   // Verificação de endereço
   const { data: endereco, isLoading: isLoadingEnd } = useEnderecoRestaurante(activeRestaurante?._id);

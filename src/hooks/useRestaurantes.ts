@@ -8,6 +8,7 @@ import { restauranteService, Restaurante } from "@/services/restauranteService";
 import { enderecoService, Endereco } from "@/services/enderecoService";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
+import { useCallback } from "react";
 
 export function useMeusRestaurantes() {
   return useQuery({
@@ -132,11 +133,11 @@ export function useRestauranteMutations(restauranteId?: string) {
   return {
     saveRestaurante: updateMutation.mutate,
     isSaving: updateMutation.isPending,
-    saveStatus: (status: 'aberto' | 'fechado', options?: any) => {
+    saveStatus: useCallback((status: 'aberto' | 'fechado', options?: { suppressToast?: boolean; onSuccess?: () => void }) => {
         // Se options contiver suppressToast (passado via onSuccess/onSettled do provider), extraí
         const suppressToast = options?.suppressToast;
         updateStatusMutation.mutate({ status, suppressToast }, options);
-    },
+    }, [updateStatusMutation]),
     isSavingStatus: updateStatusMutation.isPending,
     uploadFoto: uploadFotoMutation.mutate,
     isUploading: uploadFotoMutation.isPending,

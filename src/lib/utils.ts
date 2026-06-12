@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function isRestauranteNoHorario(horarios?: any[]): boolean {
+export function isRestauranteNoHorario(horarios?: { dia: string; abertura: string; fechamento: string; fechado: boolean }[]): boolean {
   if (!horarios || horarios.length === 0) return true;
 
   const agora = new Date();
