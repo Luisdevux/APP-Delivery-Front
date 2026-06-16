@@ -16,6 +16,7 @@ export interface Restaurante {
   taxa_entrega?: number;
   estimativa_entrega_min?: number;
   estimativa_entrega_max?: number;
+  avaliacao_media?: number;
   horario_funcionamento?: {
     dia: 'segunda' | 'terca' | 'quarta' | 'quinta' | 'sexta' | 'sabado' | 'domingo';
     abertura: string;

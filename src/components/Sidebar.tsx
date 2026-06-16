@@ -13,7 +13,8 @@ import {
   ChevronDown,
   Store,
   Moon,
-  Sun
+  Sun,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -29,6 +30,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: ClipboardList, label: "Pedidos", href: "/pedidos" },
   { icon: UtensilsCrossed, label: "Cardápio", href: "/cardapio" },
+  { icon: Star, label: "Avaliações", href: "/avaliacoes" },
   { icon: Settings, label: "Gerenciamento", href: "/restaurante" },
   { icon: User, label: "Perfil", href: "/perfil" },
 ];
