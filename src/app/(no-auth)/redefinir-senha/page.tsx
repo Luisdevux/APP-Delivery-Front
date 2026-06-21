@@ -9,17 +9,23 @@ import { KeyRound, Lock, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { usePasswordRecovery } from "@/hooks/usePasswordRecovery";
 
-export default function RedefinirSenhaPage() {
+function RedefinirSenhaForm() {
     const { reset, isResetting } = usePasswordRecovery();
     const [showPassword, setShowPassword] = useState(false);
+    const searchParams = useSearchParams();
+    const tokenFromUrl = searchParams.get("token") || "";
 
     const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordData>({
         resolver: zodResolver(resetPasswordSchema),
+        defaultValues: {
+            token: tokenFromUrl
+        }
     });
 
     const onSubmit = (data: ResetPasswordData) => {
@@ -114,5 +120,13 @@ export default function RedefinirSenhaPage() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function RedefinirSenhaPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-surface-light"><Loader2 className="w-8 h-8 animate-spin text-primary-green" /></div>}>
+            <RedefinirSenhaForm />
+        </Suspense>
     );
 }
