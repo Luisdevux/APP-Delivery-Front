@@ -87,7 +87,7 @@ export default function PedidosPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-text-primary">Gestão de Pedidos</h1>
-          <p className="text-text-secondary">Gerencie os pedidos em tempo real (Atualiza a cada 15s)</p>
+          <p className="text-text-secondary">Gerencie os pedidos do seu restaurante em tempo real</p>
         </div>
 
         <div className="relative w-full md:w-80">
