@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<h1 align="center">App Delivery - Painel do Restaurante (Frontend)</h1>
 
-## Getting Started
+<p align="center">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  <img alt="React Query" src="https://img.shields.io/badge/React_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white" />
+  <img alt="Socket.io" src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white" />
+</p>
 
-First, run the development server:
+Este é o frontend web do sistema de Delivery, construído com foco na gestão de restaurantes. Através deste painel administrativo, os restaurantes podem gerenciar seus pedidos em tempo real, acompanhar métricas, editar seus produtos e informações do perfil.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Tecnologias Utilizadas
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O projeto foi construído com as tecnologias mais modernas do ecossistema React, garantindo alta performance, tipagem estática e uma ótima experiência de desenvolvimento.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+* **[Next.js](https://nextjs.org/) (v16)** - Framework React com renderização híbrida (SSR/SSG).
+* **[React](https://react.dev/) (v19)** - Biblioteca para interfaces de usuário.
+* **[TypeScript](https://www.typescriptlang.org/)** - Superset JavaScript adicionando tipagem estática.
+* **[Tailwind CSS](https://tailwindcss.com/) (v4)** - Framework CSS utilitário para estilização rápida e responsiva.
+* **[Radix UI](https://www.radix-ui.com/)** - Componentes primitivos sem estilo focados em acessibilidade (usado como base visual, muitas vezes com shadcn/ui).
+* **[React Query (TanStack Query)](https://tanstack.com/query/latest)** - Gerenciamento robusto de estado assíncrono, cache e requisições para a API.
+* **[Socket.io-client](https://socket.io/)** - Integração com WebSockets para recebimento de novos pedidos e atualizações de status **em tempo real**.
+* **[NextAuth.js](https://next-auth.js.org/)** - Solução completa e segura de autenticação (incluindo login com Google).
+* **[React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)** - Criação de formulários performáticos e validação de dados fortemente tipada.
+* **[Recharts](https://recharts.org/)** - Construção de gráficos e dashboards interativos.
+* **[Axios](https://axios-http.com/)** - Cliente HTTP para chamadas à API backend.
+* **[Sonner](https://sonner.emilkowal.ski/)** - Sistema de notificações (Toasts) elegante e customizável.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ⚙️ Pré-requisitos
 
-## Learn More
+Para rodar este projeto localmente, certifique-se de ter instalado:
+* **Node.js** (versão 18 ou superior recomendada)
+* Gerenciador de pacotes da sua preferência (`npm`, `yarn` ou `pnpm`)
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Como rodar o projeto localmente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone ou acesse o repositório frontend:**
+   Navegue até a pasta raiz deste projeto via terminal.
+   ```bash
+   cd APP-Delivery-Front
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   # ou
+   yarn install
+   ```
 
-## Deploy on Vercel
+3. **Configure as variáveis de ambiente:**
+   Crie um arquivo `.env` na raiz do projeto contendo as seguintes chaves:
+   
+   ```env
+   # ==========================================
+   # API & BACKEND
+   # ==========================================
+   # URL pública da API usada no Client-Side (Navegador)
+   NEXT_PUBLIC_API_URL=http://localhost:5020
+   
+   # URL da API usada em Server-Side Rendering (SSR) pelo Node.js
+   API_URL_SERVER_SIDED=http://localhoost:5020
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   # ==========================================
+   # NEXT-AUTH & SEGURANÇA
+   # ==========================================
+   # URL do frontend usada pelo NextAuth para gerenciar os callbacks
+   NEXTAUTH_URL=http://localhost:3000
+   
+   # Chave secreta de no mínimo 32 caracteres usada para encriptar os JWTs locais do NextAuth
+   NEXTAUTH_SECRET=sua_secret_aleatoria_aqui_pelo_menos_32_chars_h234j23h4k
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   # ==========================================
+   # GOOGLE OAUTH
+   # ==========================================
+   # Credenciais do Google Cloud Console para o Login Social
+   GOOGLE_CLIENT_ID=seu_client_id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=seu_client_secret
+   ```
+
+4. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   # ou
+   yarn dev
+   ```
+
+5. **Acesse no navegador:**
+   Abra [http://localhost:3000](http://localhost:3000) e pronto! O painel estará disponível.
+
+## 📦 Scripts Disponíveis
+
+* `npm run dev` - Inicia a aplicação em modo de desenvolvimento com hot-reload (Porta 3000).
+* `npm run build` - Gera a build otimizada de produção (Standalone mode habilitado).
+* `npm run start` - Roda o servidor otimizado gerado pela build.
+* `npm run lint` - Roda o analisador estático de código (ESLint) para garantir a padronização.
+
+## 📡 Comunicação em Tempo Real
+
+Este projeto se destaca por usar **WebSockets (`socket.io-client`)** integrados harmoniosamente ao ecossistema do **React Query**.
+Quando o restaurante está conectado, ele escuta canais restritos ao seu `restaurante_id`. Ao receber a notificação de um novo pedido ou alteração de status, os hooks disparam uma invalidação de cache (`invalidateQueries`), o que faz a interface buscar os dados frescos na hora, garantindo assim precisão 100% real-time para a operação da cozinha e expedição.
+
+## 🐳 Docker
+
+A aplicação já está configurada com Docker.
+
+* **Modo Desenvolvimento:**
+  ```bash
+  docker compose -f docker-compose-dev.yml up -d
+  ```
+
+* **Modo Produção:**
+  ```bash
+  docker compose up -d --build
+  ```
+
+---
+*Projeto desenvolvido como parte do ecossistema App Delivery (Módulo Fábrica de Software IV).*
